@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:agenda_de_contatos/helpers/contact_helper.dart';
 import 'package:agenda_de_contatos/ui/contact_page.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+enum OrderOptions { orderAz, orderZa }
 
 class HomePage extends StatefulWidget {
   @override
@@ -23,25 +26,40 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Contatos"),
-        backgroundColor: Colors.red,
-        centerTitle: true,
-      ),
-      backgroundColor: Colors.white,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showContactPage();
-        },
-        child: Icon(Icons.add),
-        backgroundColor: Colors.red,
-      ),
-      body: ListView.builder(
-          itemCount: contacts.length,
-          itemBuilder: (context, index) {
-            return _contactCard(context, index);
-          },
-          padding: EdgeInsets.all(10)),
+        appBar: AppBar(
+            actions: <Widget>[
+        PopupMenuButton<OrderOptions>(
+        itemBuilder: (context)=><PopupMenuEntry<OrderOptions>>[
+    const PopupMenuItem<OrderOptions>(
+    child: Text("Ordenar A-Z"),
+    value: OrderOptions.orderAz,
+    ),
+    const PopupMenuItem<OrderOptions>(
+    child: Text("Ordenar Z-A"),
+    value: OrderOptions.orderZa,
+    )
+    ],
+    onSelected: _orderList,
+    )
+    ],
+    title: Text("Contatos"),
+    backgroundColor: Colors.red,
+    centerTitle: true,
+    ),
+    backgroundColor: Colors.white,
+    floatingActionButton: FloatingActionButton(
+    onPressed: () {
+    _showContactPage();
+    },
+    child: Icon(Icons.add),
+    backgroundColor: Colors.red,
+    ),
+    body: ListView.builder(
+    itemCount: contacts.length,
+    itemBuilder: (context, index) {
+    return _contactCard(context, index);
+    },
+    padding: EdgeInsets.all(10)),
     );
   }
 
@@ -118,13 +136,16 @@ class _HomePageState extends State<HomePage> {
               return Container(
                 padding: EdgeInsets.all(10),
                 child:
-                    Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                Column(mainAxisSize: MainAxisSize.min, children: <Widget>[
                   Padding(
                     padding: EdgeInsets.all(10),
                     child: FlatButton(
                         child: Text("Ligar",
                             style: TextStyle(color: Colors.red, fontSize: 20)),
-                        onPressed: () {}),
+                        onPressed: () {
+                          launch("tel:${contacts[index].phone}");
+                          Navigator.pop(context);
+                        }),
                   ),
                   Padding(
                     padding: EdgeInsets.all(10),
@@ -154,5 +175,23 @@ class _HomePageState extends State<HomePage> {
             },
           );
         });
+  }
+
+  void _orderList(OrderOptions result) {
+    setState(() {
+      switch (result) {
+        case OrderOptions.orderAz:
+          contacts.sort((a, b) {
+            return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          });
+          break;
+        case OrderOptions.orderZa:
+          contacts.sort((b, a) {
+            return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+          });
+          break;
+      }
+    });
+
   }
 }

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:agenda_de_contatos/helpers/contact_helper.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ContactPage extends StatefulWidget {
   final Contact contact;
@@ -62,15 +63,29 @@ class _ContactPageState extends State<ContactPage> {
             child: Column(
               children: <Widget>[
                 GestureDetector(
+                  onTap: () {
+                    ImagePicker.pickImage(source: ImageSource.gallery)
+                        .then((file) {
+                      if (file == null)
+                        return;
+                      else {
+                        setState(() {
+                          _editedContact.img = file.path;
+                        });
+                      }
+                    });
+                  },
                   child: Container(
                     width: 140,
                     height: 140,
                     decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         image: DecorationImage(
-                            image: _editedContact.img != null
-                                ? FileImage(File(_editedContact.img))
-                                : AssetImage("images/person.png"))),
+                          image: _editedContact.img != null
+                              ? FileImage(File(_editedContact.img))
+                              : AssetImage("images/person.png"),
+                          fit: BoxFit.cover,
+                        )),
                   ),
                 ),
                 TextField(
@@ -112,24 +127,24 @@ class _ContactPageState extends State<ContactPage> {
         ));
   }
 
-  Future<bool> _requestPop() async{
+  Future<bool> _requestPop() async {
     if (_userEddited) {
       showDialog(
           context: context,
-          builder:(context){
+          builder: (context) {
             return AlertDialog(
               title: Text("Descartar alterações?"),
               content: Text("Se sair as alterações serão perdidas"),
               actions: <Widget>[
                 FlatButton(
                   child: Text("Cancelar"),
-                  onPressed: (){
+                  onPressed: () {
                     Navigator.pop(context);
                   },
                 ),
                 FlatButton(
                   child: Text("Sim"),
-                  onPressed: (){
+                  onPressed: () {
                     Navigator.pop(context);
                     Navigator.pop(context);
                   },
@@ -138,7 +153,7 @@ class _ContactPageState extends State<ContactPage> {
             );
           });
       return Future.value(false);
-    }else{
+    } else {
       return Future.value(true);
     }
   }
